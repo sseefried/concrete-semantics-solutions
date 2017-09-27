@@ -103,11 +103,136 @@ fun subst :: "vname \<Rightarrow> aexp \<Rightarrow> aexp \<Rightarrow> aexp" wh
 (* Should evaluate to Plus (N 3) V ''y'' *)
 value  "subst ''x'' (N 3) (Plus (V ''x'') (V ''y''))"
 
-lemma substitution: "aval (subst x a e) s = aval e (s(x:= aval a s))"  
+lemma aval_subst_eq: "aval (subst x a e) s = aval e (s(x:= aval a s))"  
   by (induction e, auto)
 
-lemma "aval a1 s = aval a2 s \<Longrightarrow> aval (subst x a1 e) s = aval (subst x a2 e) s"
-  by (auto simp: substitution)
+lemma aval_subst_ext: "aval a1 s = aval a2 s \<Longrightarrow> aval (subst x a1 e) s = aval (subst x a2 e) s"
+  by (auto simp: aval_subst_eq)
+
+(* Exercise 3.4: see Exercise3p4.thy *)    
+    
+(* Execise 3.5 
+
+Define a datatype aexp2 of extended arithmetic expressions that has, in
+addition to the constructors of aexp, a constructor for modelling a C-like
+post-increment operation x++, where x must be a variable. Define an evaluation
+function aval2 :: aexp2 \<Rightarrow> state \<Rightarrow> val \<times> state that returns both the value of
+the expression and the new state. The latter is required because post-
+increment changes the state. 
+
+Extend aexp2 and aval2 with a division operation.
+Model partiality of division by changing the return type of aval2 to (val \<times>
+state) option. In case of division by 0 let aval2 return None. Division on int
+is the infix div
+
+*)
+    
+datatype aexp2 = N2 int | V2 vname | Plus2 aexp2 aexp2 | PostInc2 vname | Div2 aexp2 aexp2
+
+(* sseefried: It's not mentioned in the exercise but we have to choose an order in
+   which to evaluate sub expressions for Plus and Div. We choose left-to-right
+   So that, for instance in the expression Plus a1 a2, a1 is first evaluated and the
+   state that arises from that is passed in when evaluating a2
+ *)
+  
+fun aval2 :: "aexp2 \<Rightarrow> state \<Rightarrow> (val \<times> state) option" where
+  "aval2 (N2 n) s = Some (n, s)" |
+  "aval2 (V2 x) s = Some (s x, s)" |
+  "aval2 (Plus2 a1 a2) s = 
+    (case aval2 a1 s of
+       None \<Rightarrow> None |
+       Some (n1, s1) \<Rightarrow> 
+         (case aval2 a2 s1 of
+           None \<Rightarrow> None |
+           Some (n2, s2) \<Rightarrow> Some (n1 + n2, s2)
+         )
+    )" |
+  "aval2 (PostInc2 x) s = Some (s x, s (x:= s x + 1))" |
+  "aval2 (Div2 a1 a2) s = 
+    (case aval2 a1 s of
+      None \<Rightarrow> None |
+      Some (n1, s1) \<Rightarrow> 
+        (case aval2 a2 s1 of
+          None \<Rightarrow> None |
+          Some (n2, s2) \<Rightarrow> (if n2 = 0 then None else Some (n1 div n2, s2))
+        )
+    )"
+
+(* Exercise 3.6 
+The following type adds a LET construct to arithmetic ex- pressions:
+
+datatype lexp = Nl int | Vl vname | Plusl lexp lexp | LET vname lexp lexp
+
+The LET constructor introduces a local variable: the value of LET x e1 e2 is
+the value of e2 in the state where x is bound to the value of e1 in the
+original state. Define a function lval :: lexp \<Rightarrow> state \<Rightarrow> int that evaluates
+lexp expressions. Remember s(x := i).
+
+Define a conversion inline :: lexp \<Rightarrow>
+aexp. The expression LET x e1 e2 is inlined by substituting the converted form
+of e1 for x in the converted form of e2. See Exercise 3.3 for more on
+substitution. Prove that inline is correct w.r.t. evaluation.
+
+*)                       
+  
+datatype lexp = Nl int | Vl vname | Plusl lexp lexp | LET vname lexp lexp
+  
+fun lval :: "lexp \<Rightarrow> state \<Rightarrow> int"  where
+  "lval (Nl i) s = i" |
+  "lval (Vl x) s = s x" |
+  "lval (Plusl l1 l2) s = lval l1 s + lval l2 s" |
+  "lval (LET x rhs body) s = lval body (s (x := lval rhs s))" 
+ 
+  
+fun inline :: "lexp \<Rightarrow> aexp" where
+  "inline (Nl i) = N i" |
+  "inline (Vl x) = V x" |
+  "inline (Plusl l1 l2) = Plus (inline l1) (inline l2)" |
+  "inline (LET x rhs body) = subst x (inline rhs) (inline body)"
+
+
+value "lval (LET ''x'' (Plusl (Nl 1) (Nl 2)) (Plusl (Vl ''x'') (Nl 3))) (\<lambda>x.0)"
+value "inline (LET ''x'' (Plusl (Nl 1) (Nl 2)) (Plusl (Vl ''x'') (Nl 3)))"
+
+    
+(* Wow, this one was hard. I needed to make sure that I was quantifying over an _arbitrary_
+   state.
+   
+   Without "arbitrary: s" I got the following goal:
+
+   \<And>x rhs body. aval (inline rhs) s = lval rhs s \<Longrightarrow> 
+                 aval (inline body) s = lval body s \<Longrightarrow> 
+                 aval (inline body) (s(x := lval rhs s)) = lval body (s(x := lval rhs s))
+
+   With "arbitrary: s" the goal becomes:
+
+   \<And>x rhs body s. (\<And>s. aval (inline rhs) s = lval rhs s) \<Longrightarrow> 
+                   (\<And>s. aval (inline body) s = lval body s) \<Longrightarrow> 
+                   aval (subst x (inline rhs) (inline body)) s = lval body (s(x := lval rhs s))
+
+  The term "aval (subst x (inline rhs) (inline body)) s = lval body (s(x := lval rhs s))" is
+  first simplified to:
+
+  aval (inline body) (s(x := aval (inline rhs) s)) = lval body (s(x := lval rhs s))
+
+  and then to:
+
+  aval (inline body) (s(x := lval rhs s)) = lval body (s(x := lval rhs s))
+  (by the first assumption above)
+
+  The universal quantification on "s" in the assumptions now helps us. The second assumption
+  is applied where the quantified "s" is replaced with "s(x := lval rhs s)" and hence we
+  can discharge this goal.
+  
+  The book is well written. This issue was already covered in p20-21.
+
+*)
+    
+lemma "aval (inline l) s = lval l s"
+  apply (induction l arbitrary: s rule: inline.induct)
+     apply (auto simp: aval_subst_eq)
+    done
+
   
   
 end

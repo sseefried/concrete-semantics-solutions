@@ -1,3 +1,40 @@
+# Wed 27 Sep 2017
+
+
+## <TROUBLESHOOTING>: Using `arbitrary` when applying `induction` rule.
+
+Wow, Exercise 3.6 was hard. I needed to make sure that I was quantifying over an
+_arbitrary_ state.
+
+Without "arbitrary: s" I got the following goal:
+
+    ⋀x rhs body. aval (inline rhs) s = lval rhs s ⟹
+                 aval (inline body) s = lval body s ⟹
+                 aval (inline body) (s(x := lval rhs s)) = lval body (s(x := lval rhs s))
+
+With "arbitrary: s" the goal becomes:
+
+    ⋀x rhs body s. (⋀s. aval (inline rhs) s = lval rhs s) ⟹
+                   (⋀s. aval (inline body) s = lval body s) ⟹
+                   aval (subst x (inline rhs) (inline body)) s = lval body (s(x := lval rhs s))
+
+The term "aval (subst x (inline rhs) (inline body)) s = lval body (s(x := lval
+rhs s))" is first simplified to:
+
+    aval (inline body) (s(x := aval (inline rhs) s)) = lval body (s(x := lval rhs s))
+
+and then to:
+
+    aval (inline body) (s(x := lval rhs s)) = lval body (s(x := lval rhs s))
+
+(by the first assumption above)
+
+The (meta) universal quantification on `s` in the assumptions now helps us. The
+second assumption is applied where the quantified `s` is replaced with
+`s(x := lval rhs s)` and hence we can discharge this goal.
+
+
+
 # Tue 26 Sep 2017
 
 ## Got things in the assumptions that need simplifying?
@@ -67,4 +104,5 @@ If I left out `option.splits` then I'd get something like this:
 		             aval a1 s + aval a2 s
 
 It's clear there are case-expressions on the `option` type in the assumptions.
+
 This is what `option.splits` are for.
