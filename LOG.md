@@ -1,7 +1,7 @@
 # Wed 27 Sep 2017
 
 
-## <TROUBLESHOOTING>: Using `arbitrary` when applying `induction` rule.
+## TROUBLESHOOTING: Using `arbitrary` when applying `induction` rule.
 
 Wow, Exercise 3.6 was hard. I needed to make sure that I was quantifying over an
 _arbitrary_ state.
@@ -33,7 +33,11 @@ The (meta) universal quantification on `s` in the assumptions now helps us. The
 second assumption is applied where the quantified `s` is replaced with
 `s(x := lval rhs s)` and hence we can discharge this goal.
 
+The book is well written. This issue was already covered in p20-21
+when trying to prove some properties about the `itrev` function.
+It suggested the heuristic:
 
+> _Generalize goals for induction by replacing constants by variables_
 
 # Tue 26 Sep 2017
 
