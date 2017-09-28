@@ -233,6 +233,67 @@ lemma "aval (inline l) s = lval l s"
      apply (auto simp: aval_subst_eq)
     done
 
+datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
   
+fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where  
+  "bval (Bc v) s       = v" |
+  "bval (Not b) s      = (\<not> bval b s)" |
+  "bval (And b1 b2) s  = (bval b1 s \<and> bval b2 s)" |
+  "bval (Less a1 a2) s = (aval a1 s < aval a2 s)"
+
+fun not :: "bexp \<Rightarrow> bexp" where  
+  "not (Bc True) = Bc False" |
+  "not (Bc False) = Bc True" |
+  "not b = Not b"
   
+fun "and" :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
+  "and (Bc True) b = b" |
+  "and b (Bc True) = b" |
+  "and (Bc False) b = Bc False" |
+  "and b (Bc False) = Bc False" |
+  "and b1 b2 = And b1 b2"
+
+fun less :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+  "less (N n1) (N n2) = Bc (n1 < n2)" |
+  "less a1 a2 = Less a1 a2"
+
+fun bsimp :: "bexp \<Rightarrow> bexp" where
+  "bsimp (Bc v) = Bc v" |
+  "bsimp (Not b) = not (bsimp b)" |
+  "bsimp (And b1 b2) = and (bsimp b1) (bsimp b2)" |
+  "bsimp (Less a1 a2) = less (asimp a1) (asimp a2)"
+
+(* Exercise 3.7
+
+Define functions Eq, Le :: aexp \<Rightarrow> aexp \<Rightarrow> bexp and 
+prove bval(Eqa1 a2) s = (aval a1 s = aval a2 s) and
+bval (Le a1 a2) s = (aval a1 s \<le> aval a2 s)
+
+*)  
+
+(* I've decided to make these constant-folding, but for this I will
+   require some helper theorems
+*)  
+lemma [simp]: "bval (not b) s = bval (Not b) s"
+  by (induction b, auto)
+
+lemma [simp]: "bval (and b1 b2) s = bval (And b1 b2) s" 
+  by (induction b1 b2 rule: and.induct, auto)
+
+lemma [simp]: "bval (less a1 a2) s = bval (Less a1 a2) s"
+  by (induction a1 a2 rule: less.induct, auto)
+        
+fun Eq :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+  "Eq a1 a2 = and (not (less a1 a2)) (not (less a2 a1))"
+    
+lemma "bval (Eq a1 a2) s = (aval a1 s = aval a2 s)"
+  by auto
+
+fun Le :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+  "Le a1 a2 = not (less a2 a1)"
+ 
+lemma "bval (Le a1 a2) s = (aval a1 s \<le> aval a2 s)"
+  by auto
+    
+    
 end
