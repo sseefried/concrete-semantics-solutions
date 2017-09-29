@@ -295,5 +295,46 @@ fun Le :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
 lemma "bval (Le a1 a2) s = (aval a1 s \<le> aval a2 s)"
   by auto
     
-    
+(* Exercise 3.8
+
+Consider an alternative type of boolean expressions featuring a conditional:
+datatype ifexp = Bc2 bool | If ifexp ifexp ifexp | Less2 aexp aexp
+First define an evaluation function ifval :: ifexp \<Rightarrow> state \<Rightarrow> bool analogously to bval. 
+Then define two functions b2ifexp :: bexp \<Rightarrow> ifexp and if2bexp :: ifexp \<Rightarrow> bexp and 
+prove their correctness, i.e., that they preserve the value of an expression.
+
+*)
+
+datatype ifexp = Bc2 bool | If ifexp ifexp ifexp | Less2 aexp aexp
+  
+fun ifval :: "ifexp \<Rightarrow> state \<Rightarrow> bool" where  
+  "ifval (Bc2 b) s = b" |
+  "ifval (If cond thn els) s = (if (ifval cond s) then (ifval thn s) else (ifval els s))" |
+  "ifval (Less2 a1 a2) s = (aval a1 s < aval a2 s)"
+
+fun or :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
+  "or b1 b2 = Not (And (Not b1) (Not b2))"  (* de Morgan's Law *)
+
+fun b2ifexp :: "bexp \<Rightarrow> ifexp" where
+  "b2ifexp (Bc b) = Bc2 b" |
+  "b2ifexp (Not b) = If (b2ifexp b) (Bc2 False) (Bc2 True)" |
+  "b2ifexp (And b1 b2) = If (b2ifexp b1) (b2ifexp b2) (Bc2 False)" |
+  "b2ifexp (Less a1 a2) = Less2 a1 a2"
+  
+
+fun if2bexp :: "ifexp \<Rightarrow> bexp" where  
+  "if2bexp (Bc2 b) = Bc b" |
+  "if2bexp (If cond thn els) = 
+     or (And (if2bexp cond) (if2bexp thn)) (And (Not (if2bexp cond)) (if2bexp els))" |
+  "if2bexp (Less2 a1 a2) = Less a1 a2"
+  
+value "bval (if2bexp (If (Less2 (N 2) (N 2)) (Bc2 True) (Bc2 False))) (\<lambda>x.0)"  
+
+lemma "ifval (b2ifexp b) s = bval b s"
+  by (induction b arbitrary: s, auto)
+
+lemma "bval (if2bexp b) s = ifval b s"
+  by (induction b arbitrary: s, auto)
+  
+  
 end
