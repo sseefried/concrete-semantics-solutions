@@ -1,6 +1,22 @@
+# Tue 10 Oct 2017
+
+## [ERRATA] Exercise 3.12
+
+I'd like to suggest a change to the wording of Exercise 3.12 that makes
+it clear that the `r` argument in `comp a r` refers to the top of the stack.
+I'd even go so far as to say that register `r` itself shouldn't be touched
+since `r = 0` is possible. `comp a r` means that register `r+1` and above
+can be freely overwritten.
+
 # Tue 03 Oct 2017
 
 ## Exercise 3.9 took me an entire afternoon! Why?
+
+1. It took me a long time to get the definition of distribution correct.
+   Originally I was trying to write it inline in `dnf_of_nnf` but I needed
+   to pull it out into a separate function `dist`
+
+At one point I was getting the wrong results (as below)
 
     value "dnf_of_nnf (AND (AND (OR (VAR ''x1'') (VAR ''y1'')) (OR (VAR ''x2'') (VAR ''y2''))) (OR (VAR ''x3'') (VAR ''y3'')))"
 
@@ -12,7 +28,31 @@ is producing (the incorrect value of)
         (AND (OR (AND (VAR ''y1'') (VAR ''x2'')) (AND (VAR ''y1'') (VAR ''y2''))) (VAR ''y3'')))"
       :: "pbexp"
 
+This example helped me find the correct solution for `dist`.
 
+2. Because I wrote `dist` separately it was necessary to create an intermediate
+   lemma to help.
+
+    pbval (dist a b) s = pbval (AND a b) s
+
+The order of the equality in this lemma mattered!
+This is going down as a TROUBLESHOOTING rule.
+
+3. I also had another intermediate function called `no_ors` which threw
+a spanner in the works. Fortunately, I got a whole lot of left over goals
+
+    1. ⋀va. is_nnf (NOT va) ⟹ no_ors va
+    2. ⋀v. is_nnf (NOT v) ⟹ no_ors v
+    3. ⋀va v. is_nnf (NOT va) ⟹ is_nnf (NOT v) ⟹ no_ors va
+    4. ⋀va v. is_nnf (NOT va) ⟹ is_nnf (NOT v) ⟹ no_ors v
+    5. ⋀va vb v. is_nnf (NOT v) ⟹ no_ors va ⟹ no_ors vb ⟹ is_dnf va ⟹ is_dnf vb ⟹ no_ors v
+    6. ⋀vb v va. is_nnf (NOT vb) ⟹ no_ors v ⟹ no_ors va ⟹ is_dnf v ⟹ is_dnf va ⟹ no_ors vb
+
+which made it obvious that I needed the following intermediate lemma.
+
+    is_nnf (NOT v) ⟹ no_ors v
+
+This was easy to prove since for `is_nnf` to be true `v` had to be a `VAR`
 
 # Wed 27 Sep 2017
 

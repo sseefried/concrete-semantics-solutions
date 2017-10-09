@@ -369,10 +369,12 @@ an NNF (is_nnf (nnf b)).
 An expression is in DNF (disjunctive normal form) if it is in NNF and if no 
 OR occurs below an AND. Define a corresponding test is_dnf :: pbexp \<Rightarrow> bool. An NNF can be
 converted into a DNF in a bottom-up manner. The critical case is the conversion of AND b1 b2. 
-Having converted b1 and b2, apply distributivity of AND over OR. Define a conversion 
-function dnf_of_nnf :: pbexp \<Rightarrow> pbexp from NNF to DNF. Prove that your function preserves 
-the value (pbval (dnf_of_nnf b) s = pbval b s) and converts an NNF into a 
-DNF (is_nnf b =\<Rightarrow> is_dnf (dnf_of_nnf b))
+Having converted b1 and b2, apply distributivity of AND over OR. 
+
+Define a conversion function dnf_of_nnf :: pbexp \<Rightarrow> pbexp from NNF to DNF. 
+
+Prove that your function preserves the value (pbval (dnf_of_nnf b) s = pbval b s) and 
+converts an NNF into a DNF (is_nnf b \<Longrightarrow> is_dnf (dnf_of_nnf b))
 
 *)    
 
@@ -426,19 +428,18 @@ and no_ors :: "pbexp \<Rightarrow> bool" where
   
 
 (* left distribute AND A (OR B C)" *)
-fun distL :: "pbexp \<Rightarrow> pbexp \<Rightarrow> pbexp" where
-(*  "distL (OR a b) (OR c d) = OR (OR (distL a c) (distL a d)) (OR (distL b c) (distL b d)) " | *)
-  "distL a (OR b c)        = OR (distL a b) (distL a c)" |
-  "distL (OR a b) c        = OR (distL a c) (distL b c)" | 
-  "distL a b               = AND a b"
+fun dist :: "pbexp \<Rightarrow> pbexp \<Rightarrow> pbexp" where
+  "dist a (OR b c)        = OR (dist a b) (dist a c)" |
+  "dist (OR a b) c        = OR (dist a c) (dist b c)" | 
+  "dist a b               = AND a b"
 
- value "distL (VAR ''a'') (OR (OR (VAR ''x'') (VAR ''y'')) (VAR ''z''))"
+ value "dist (VAR ''a'') (OR (OR (VAR ''x'') (VAR ''y'')) (VAR ''z''))"
 
 fun dnf_of_nnf :: "pbexp \<Rightarrow> pbexp" where
   "dnf_of_nnf (VAR x) = VAR x" |
   "dnf_of_nnf (NOT b) = NOT b" |
   "dnf_of_nnf (OR b1 b2)  = OR (dnf_of_nnf b1) (dnf_of_nnf b2)" |
-  "dnf_of_nnf (AND b1 b2) = distL (dnf_of_nnf b1) (dnf_of_nnf b2)"
+  "dnf_of_nnf (AND b1 b2) = dist (dnf_of_nnf b1) (dnf_of_nnf b2)"
 
 value "is_dnf (AND (AND (OR (VAR ''x'') (VAR ''y'')) (VAR ''z'')) (VAR ''a''))"
 value "dnf_of_nnf (nnf (NOT (OR (VAR ''x'') (AND (VAR ''y'') (VAR ''z'')))))"
@@ -450,21 +451,21 @@ value "dnf_of_nnf (AND (AND (OR (VAR ''x1'') (VAR ''y1'')) (OR (VAR ''x2'') (VAR
 value "dnf_of_nnf (AND (OR (OR (VAR ''x'') (VAR ''y'')) (VAR ''z'')) (VAR ''a''))"
   
 (* The order of the equality matters! *)
-lemma distL_AND_eq: "pbval (distL a b) s = pbval (AND a b) s"
-  by (induction a b rule: distL.induct, auto)
+lemma dist_AND_eq: "pbval (dist a b) s = pbval (AND a b) s"
+  by (induction a b rule: dist.induct, auto)
 
 lemma  "pbval (dnf_of_nnf b) s = pbval b s"
-  by (induction b rule: dnf_of_nnf.induct, auto simp: distL_AND_eq)
+  by (induction b rule: dnf_of_nnf.induct, auto simp: dist_AND_eq)
 
 (* This is true because v must be a VAR *)
 lemma no_ors_in_NOT_if_nnf: "is_nnf (NOT v) \<Longrightarrow> no_ors v"
   by (induction v, auto)
 
-lemma dnf_distL: "is_dnf a \<Longrightarrow> is_dnf b \<Longrightarrow> is_dnf (distL a b)"
-  by (induction a b rule: distL.induct, auto simp: no_ors_in_NOT_if_nnf)
+lemma dnf_dist: "is_dnf a \<Longrightarrow> is_dnf b \<Longrightarrow> is_dnf (dist a b)"
+  by (induction a b rule: dist.induct, auto simp: no_ors_in_NOT_if_nnf) 
     
 lemma "is_nnf b \<Longrightarrow> is_dnf (dnf_of_nnf b)"
-  by  (induction b rule: dnf_of_nnf.induct, auto simp: dnf_distL)
+  by  (induction b rule: dnf_of_nnf.induct, auto simp: dnf_dist)
 
 (* End of Exercise 3.9 *)
   
