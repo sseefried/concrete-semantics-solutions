@@ -8,6 +8,16 @@ datatype aexp = N int | V vname | Plus aexp aexp
   
 type_synonym val = int  
 type_synonym state = "vname \<Rightarrow> val"
+
+text {* A little syntax magic to write larger states compactly: *}
+
+definition null_state ("<>") where
+  "null_state \<equiv> \<lambda>x. 0"
+syntax 
+  "_State" :: "updbinds => 'a" ("<_>")
+translations
+  "_State ms" == "_Update <> ms"
+  "_State (_updbinds b bs)" <= "_Update (_State b) bs"
   
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
   "aval (N n) s = n" |
@@ -457,5 +467,5 @@ lemma "is_nnf b \<Longrightarrow> is_dnf (dnf_of_nnf b)"
   by  (induction b rule: dnf_of_nnf.induct, auto simp: dnf_distL)
 
 (* End of Exercise 3.9 *)
-
+  
 end
