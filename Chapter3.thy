@@ -456,5 +456,6 @@ lemma dnf_distL: "is_dnf a \<Longrightarrow> is_dnf b \<Longrightarrow> is_dnf (
 lemma "is_nnf b \<Longrightarrow> is_dnf (dnf_of_nnf b)"
   by  (induction b rule: dnf_of_nnf.induct, auto simp: dnf_distL)
 
+(* End of Exercise 3.9 *)
 
 end
