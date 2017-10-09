@@ -1,3 +1,19 @@
+# Tue 03 Oct 2017
+
+## Exercise 3.9 took me an entire afternoon! Why?
+
+    value "dnf_of_nnf (AND (AND (OR (VAR ''x1'') (VAR ''y1'')) (OR (VAR ''x2'') (VAR ''y2''))) (OR (VAR ''x3'') (VAR ''y3'')))"
+
+is producing (the incorrect value of)
+
+    "OR (OR (AND (OR (AND (VAR ''x1'') (VAR ''x2'')) (AND (VAR ''x1'') (VAR ''y2''))) (VAR ''x3''))
+          (AND (OR (AND (VAR ''x1'') (VAR ''x2'')) (AND (VAR ''x1'') (VAR ''y2''))) (VAR ''y3'')))
+      (OR (AND (OR (AND (VAR ''y1'') (VAR ''x2'')) (AND (VAR ''y1'') (VAR ''y2''))) (VAR ''x3''))
+        (AND (OR (AND (VAR ''y1'') (VAR ''x2'')) (AND (VAR ''y1'') (VAR ''y2''))) (VAR ''y3'')))"
+      :: "pbexp"
+
+
+
 # Wed 27 Sep 2017
 
 
