@@ -32,3 +32,9 @@ Example. In Exercise 3.9 I needed to prove
     pbval (dist a b) s = pbval (AND a b) s
 
 Looking at the goals carefully let me realise this.
+
+## RULE: Use your splits
+
+In exercise 3.2 it took me forever to find the "split" theorems
+`if_splits` and `option_splits` so that I could get the following theorem
+to prove.

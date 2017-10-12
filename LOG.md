@@ -1,3 +1,16 @@
+# Thu 12 Oct 2017
+
+See `Exercise4p1.thy` for a comment on how unsatisfying it was to use
+`rule_tac`.
+
+I think the following is true:
+
+**If a tactic is not smart enough getting Isabelle to behave as you want it
+to is fiddly**
+
+The traceability of Isabelle's tactics is always something I have struggled
+with. They are black boxes for the most part.
+
 # Tue 10 Oct 2017
 
 ## [ERRATA] Exercise 3.12
@@ -105,7 +118,7 @@ In exercise 3.2 it took me forever to find the "split" theorems
 `if_splits` and `option_splits` so that I could get the following theorem
 to prove.
 
-    fun asimp_constant_total :: "aexp ⇒ int" where
+    fun asimp_constant_total :: "aexp ⇒ int" re
       "asimp_constant_total (N i) = i" |
       "asimp_constant_total (V x) = 0 "|
       "asimp_constant_total (Plus a1 a2) = asimp_constant_total a1 + asimp_constant_total a2"
