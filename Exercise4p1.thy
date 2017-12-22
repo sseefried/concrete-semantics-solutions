@@ -89,7 +89,5 @@ lemma "ord t \<Longrightarrow> ord (ins i t)"
 lemma "ord t \<Longrightarrow> ord (ins i t)"
   apply (induction t, auto simp: set_ins)
     done
-
- 
-      
+     
 end

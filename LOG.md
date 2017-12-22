@@ -1,3 +1,60 @@
+# Fri 13 Oct 2017
+
+## What can `auto` do?
+
+- rewriting
+- linear arithmetic facts (no multiplication)
+- simple logic or set-theoretic goals
+
+The key characteristics of both `simp` and `auto`:
+- They show you where they got stuck, giving you an idea how to continue.
+- They perform the obvious steps but are highly incomplete.
+
+Proof method `fastforce` tries harder than `auto`.
+* either succeeds or fails
+* only acts of the first subgoal
+* can be good on quantifiers where `auto` does not succeed.
+
+Proof method `force` is a slower, more powerful version of `fastforce`.
+
+Proof method `blast` should be used on complex logical goals.
+Blast
+- is (in principle) complete on first-order formulas.
+- does no rewriting!
+- covers logic, sets and relations
+- either succeeds or fails
+
+`blast` _complements_ `auto`, `fastforce`, `force` etc since it is _weak_
+on equality reasoning but good on logic and sets. Has opposite strengths
+and weaknesses.
+
+## How does metis prove this?
+
+On p41 the reader is asked to work out how metis proves the following:
+
+    [xs @ ys = ys @ xs; length xs = length ys ] ==> xs = ys
+
+from:
+
+    (xs @ ys = zs) = (xs = take (length xs) zs /\ ys = drop (length xs) zs)
+
+Perhaps like the following?
+
+        xs @ ys = ys @ xs
+    ==> xs = take (length xs) (ys @ xs) /\ ys = drop (length xs) (ys @ xs)
+    ==> xs = take (length xs) (xs @ ys)
+
+Then we have a new fact
+
+    ?as = take (length ?as (?as @ ?bs))
+
+Using this and using `length xs == length ys` we could deduce
+
+        xs = take (length xs) (ys @ xs)
+    ==> xs = take (length ys) (ys @ xs)   -- using length xs == length ys
+    ==> xs = ys                           -- using our new fact
+
+
 # Thu 12 Oct 2017
 
 See `Exercise4p1.thy` for a comment on how unsatisfying it was to use
@@ -6,7 +63,7 @@ See `Exercise4p1.thy` for a comment on how unsatisfying it was to use
 I think the following is true:
 
 **If a tactic is not smart enough getting Isabelle to behave as you want it
-to is fiddly**
+to is fiddly!**
 
 The traceability of Isabelle's tactics is always something I have struggled
 with. They are black boxes for the most part.
