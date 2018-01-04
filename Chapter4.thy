@@ -53,7 +53,6 @@ lemma "\<not> ev (Suc 0)"
   apply (rule notI)
   apply (induction rule: ev.induct)
     apply auto
-
-
+    sorry
     
 end

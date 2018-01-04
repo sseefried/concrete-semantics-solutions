@@ -1,3 +1,29 @@
+# Mon 01 Jan 2017
+# Thu 04 Jan 2018
+**Pomodoros: 3**
+
+# Mon 01 Jan 2018
+**Pomodoros: 3**
+
+Starting on chapter 7 proofs.
+
+## `print_theorems` is your friend
+
+I'm going to have to start collecting these bits of advice in a separate
+"how to use Isabelle" guide.
+
+I had the problem that I was trying to prove rule inversions such as
+
+    (SKIP, s) ⇒ t ⟹ t = s
+
+I didn't want to use the `inductive_cases` magic that the solutions suggested.
+I wanted to prove them by hand. In the end I discovered that when
+I defined `big_step` with the `inductive` declaration it had brought into
+scope `inductive.cases` which was just the theorem I needed. I could then prove
+with `apply (erule big_step.cases, auto)`
+
+
+
 # Fri 13 Oct 2017
 
 ## What can `auto` do?
