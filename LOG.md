@@ -1,4 +1,36 @@
 # Mon 01 Jan 2017
+# Sat 06 Jan 2018
+**Pomodoros: 4 **
+
+Isar 
+
+- `from` clause indicates which facts are to be used in the proof
+- `have` is used to state intermediate propositions
+- `show` is used to state the overall goal
+- `fix` is used to introduce ⋀-quantified variables
+- `assume` introduces the assumption of an implication
+- Propositions are optionally named formuas. They can be referred to in later
+  `from` clauses.
+
+Facts
+- Fact names can stand for whole lists of facts. If `f` is defined by command 
+  `fun` then `f.simps` refers to a whole list of recursion equations.
+  Individual facts can be selected by writing `f.simps(2)` and sublists with
+  e.g. `f.simps(2-4)`
+
+Isar abbreviations
+- `then` = `from this`
+- `thus` = `then show` = `from this show`
+- `hence` = `then have` = `from this have`
+- `(have|show) <prop> using <facts>` = `from <facts> (have|show) prop`
+- `with <facts>` = `from <facts> <this>`
+
+After `proof` you will sometimes see a hyphen. It is the null method
+that does nothing to the goal. If it is left out then some suitable
+introduction rule is tried. (It is mysterious to me how it is chosen).
+
+You can refer to the assumptions with `assms(1)`, `assms(2)` etc
+
 # Thu 04 Jan 2018
 **Pomodoros: 3**
 
