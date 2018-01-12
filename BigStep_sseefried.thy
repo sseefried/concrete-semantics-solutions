@@ -83,9 +83,7 @@ lemma WhileE[elim]:
   \<Longrightarrow>   bval b s \<and> (\<exists>s'. (c, s) \<Rightarrow> s' \<and> (WHILE b DO c, s') \<Rightarrow> t) 
       \<or> \<not>bval b s \<and> t = s"
    by  (erule big_step.cases, auto)
-
-
-   
+  
 inductive_cases SkipE2[elim!]: "(SKIP, s) \<Rightarrow> t"
 inductive_cases AssignE2[elim!]: "(x ::= a,s) \<Rightarrow> t"
 inductive_cases SeqE2[elim!]: "(c1;;c2,s1) \<Rightarrow> s3"

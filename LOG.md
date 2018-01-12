@@ -1,8 +1,53 @@
-# Mon 01 Jan 2017
-# Sat 06 Jan 2018
-**Pomodoros: 4 **
+# Thu 11 Jan 2018
 
-Isar 
+I was having difficulty with what `obtain` was doing
+
+I found a textual substitution from `isar-ref.pdf` (p35) that was _almost_ right.
+
+With some tweaking I found that I could replace
+
+    obtain c1' s1' where a: "y = (c1', s1')" by fastforce
+
+with
+
+    have case1: "⋀thesis. (⋀c1' s1'. y = (c1', s1') ⟹ thesis) ⟹ thesis"
+    proof -
+      fix thesis
+      assume [intro]: "⋀c1' s1'. y = (c1', s1') ⟹ thesis"
+      then show thesis by fastforce
+    qed
+    fix c1' s1'
+    presume a: "y = (c1', s1')"
+
+and it did exactly the same thing. This is nice. I've often had
+difficult proving the obligations thrown up by `obtain` and that is because
+what it is doing is inscrutable to me.
+
+Actually I've come up with something better:
+
+If you can solve the following as a separate lemma (with this skeleton)
+
+    lemma "⋀thesis. (⋀c1' s1'. y = (c1', s1') ⟹ thesis) ⟹ thesis"
+    proof -
+      fix thesis
+      assume [intro]: "⋀c1' s1'. y = (c1', s1') ⟹ thesis"
+      then show thesis <<proof>>
+    qed
+
+then you can show:
+
+    obtain c1' s1' where a: "y = (c1', s1')" <<proof>>
+
+This will help you in future when you are struggling with an `obtain`.
+
+# Wed 10 Jan 2018
+**Pomodoros: 8**
+
+
+# Sat 06 Jan 2018
+**Pomodoros: 4**
+
+Isar
 
 - `from` clause indicates which facts are to be used in the proof
 - `have` is used to state intermediate propositions
@@ -13,7 +58,7 @@ Isar
   `from` clauses.
 
 Facts
-- Fact names can stand for whole lists of facts. If `f` is defined by command 
+- Fact names can stand for whole lists of facts. If `f` is defined by command
   `fun` then `f.simps` refers to a whole list of recursion equations.
   Individual facts can be selected by writing `f.simps(2)` and sublists with
   e.g. `f.simps(2-4)`
