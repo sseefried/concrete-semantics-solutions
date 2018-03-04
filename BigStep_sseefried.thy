@@ -114,7 +114,7 @@ abbreviation
 lemma "WHILE b DO c \<sim> IF b THEN (c;; WHILE b DO c) ELSE SKIP"
   by blast
 
-lemma "IF b THEN c ELSE c \<sim> c"
+lemma if_equiv: "IF b THEN c ELSE c \<sim> c"
   by blast
  
 (* Lemma 7.6 *)  
