@@ -57,10 +57,42 @@ qed
 (* ^^^
    Finally happy with this proof even though it took me hours to get right *)
 
+(***********************)
+(* Third *)
+   
+(* The trick with this proof was to structure the proof almost exactly 
+   the same as I would have done a pencil and paper proof of the same 
+   thing.
+*)
+
 abbreviation
-  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix "notsim" 50) where
-  "c notsim c' \<equiv> \<not> (\<forall>s t. (c, s) \<Rightarrow> t = (c', s) \<Rightarrow> t)"
-
-
+  Or :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
+  "Or b1 b2 \<equiv> Not (And (Not b1) (Not b2))"
   
+lemma while_cond_terminate: "(WHILE b DO c, s) \<Rightarrow> t \<Longrightarrow> \<not> bval b t"
+  by (induction "WHILE b DO c" s t rule: big_step_induct, auto)
+ 
+lemma "WHILE Or b1 b2 DO c \<sim> WHILE Or b1 b2 DO c;; WHILE b1 DO c"
+proof -
+  { fix s t
+    assume assm: "(WHILE Or b1 b2 DO c,s ) \<Rightarrow> t" (is "(?while1, s) \<Rightarrow> t")
+    hence "\<not> bval (Or b1 b2) t" using while_cond_terminate by blast
+    hence "\<not> bval b1 t" by auto
+    hence "(?while1;; WHILE b1 DO c, s) \<Rightarrow> t" (is "(?while1;;?while2,s) \<Rightarrow> t") using assm by blast
+    hence "(?while1, s) \<Rightarrow> t \<Longrightarrow> (?while1;;?while2, s) \<Rightarrow> t" by blast
+  } note forward = this 
+
+  { fix s t
+    assume assm1: "(WHILE Or b1 b2 DO c;; WHILE b1 DO c, s) \<Rightarrow> t" (is "(?while1;;?while2,s) \<Rightarrow> t")
+    hence ex: "\<exists>s'. (?while1, s) \<Rightarrow> s' \<and> (?while2, s') \<Rightarrow> t" by auto
+    then obtain s' where e1: "(?while1, s) \<Rightarrow> s'"
+                     and e2: "(?while2, s') \<Rightarrow> t" by blast
+    hence "\<not> bval b1 s'" using while_cond_terminate by fastforce
+    hence "s' = t" using e2 by blast
+    hence "(?while1, s) \<Rightarrow> t" using e1 by blast
+    hence "(?while1;; ?while2, s) \<Rightarrow> t \<Longrightarrow> (?while1, s) \<Rightarrow> t" by blast
+  } note backward = this
+  show ?thesis using forward backward by blast
+qed
+
 end
