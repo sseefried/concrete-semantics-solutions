@@ -1,3 +1,45 @@
+# Tue 06 Mar 2018
+
+## Colours of variables
+
+The colours of the variables in Isabelle/jEdit matter
+
+blue : free variable
+green : bound variable
+orange : skolem constant ("free" variables existentially "quantified")
+cyan : syntax (not a variable or a constant, like case or if)
+
+## On presenting a counterexample to a theorem.
+
+I has to prove `¬ ( WHILE And b1 b2 DO c ∼ WHILE b1 DO WHILE b2 DO c)`
+but I wasn't able to.
+
+This was because b1, b2, and c were free variables which are implicily
+quantified with the meta-all operator which means
+they cannot be instantiated. The proof relied on being able to instantiate
+them with `Bc True`, `Bc False`, and `SKIP` respectively.
+
+Thus I had to rephrase the lemma as:
+
+    lemma "¬ (∀b1 b2 c. WHILE And b1 b2 DO c ∼ WHILE b1 DO WHILE b2 DO c)"
+
+This meant that I was free to instantiate the variables inside the proof
+and thus prove it true.
+
+The way I should have read the first formulation was:
+
+"For all `b1`, `b2`, and `c` it is not the case that `WHILE And b1 b2 DO c`
+is an equivalent command to `WHILE b1 DO WHILE b2 DO c`"
+
+Read this way it is quite obvious that I could not prove this. For instance
+if `b1 = Bc True` and `b2 = Bc True` then it _is_ the case that these two
+commands are equivalent.
+
+I always wanted to prove that "It is not the case that for all `b1`, `b2`,
+and `c` that  `WHILE And b1 b2 DO c` is an equivalent command to
+`WHILE b1 DO WHILE b2 DO c`". This is what the second formulation says.
+The first does not!
+
 # Thu 11 Jan 2018
 
 I was having difficulty with what `obtain` was doing
