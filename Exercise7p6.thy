@@ -31,7 +31,7 @@ proof -
     proof (induction c arbitrary: s t)
       case (Seq c1 c2)
       hence "\<exists>s'. (c1, s) \<Rightarrow> s' \<and> (c2, s') \<Rightarrow> t" by auto
-      then obtain s' where l: "(c1, s) \<Rightarrow> s'" and r: "(c2, s') \<Rightarrow> t" by blast
+      then obtain s' where "(c1, s) \<Rightarrow> s'" and "(c2, s') \<Rightarrow> t" by blast
       hence "(dewhile c1, s) \<Rightarrow> s'" and "(dewhile c2, s') \<Rightarrow> t" using Seq.IH by auto
       hence "(dewhile c1;; dewhile c2, s) \<Rightarrow> t" by blast
       thus  "(dewhile (c1 ;; c2), s) \<Rightarrow> t" by auto
