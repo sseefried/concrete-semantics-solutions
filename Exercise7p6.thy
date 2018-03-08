@@ -3,7 +3,7 @@ imports Bigstep_sseefried
 begin
 
 abbreviation DoWhile :: "com \<Rightarrow> bexp \<Rightarrow> com" ("(DO _/ WHILE _)"  [0, 61] 61) where
-  "DoWhile c b \<equiv> IF b THEN (c ;; WHILE b DO c) ELSE SKIP" 
+  "DoWhile c b \<equiv> c;; WHILE b DO c"
 
 fun dewhile :: "com \<Rightarrow> com" where
     "dewhile SKIP = SKIP"
@@ -14,6 +14,8 @@ fun dewhile :: "com \<Rightarrow> com" where
 
 print_theorems
     
+(* c \<sim> c' \<equiv> \<forall>s s'. (c,s) \<Rightarrow> s' = (c',s) \<Rightarrow> s' *)
+  
 lemma "dewhile c \<sim> c"
 proof -
   { fix s t

@@ -110,8 +110,10 @@ lemma seq_assoc: "(c1;; c2;; c3, s) \<Rightarrow> s' \<longleftrightarrow> (c1;;
 abbreviation
   equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix "\<sim>" 50) where
   "c \<sim> c' \<equiv> (\<forall>s t. (c, s) \<Rightarrow> t = (c', s) \<Rightarrow> t)"
+
+print_theorems
   
-lemma "WHILE b DO c \<sim> IF b THEN (c;; WHILE b DO c) ELSE SKIP"
+lemma while_if_equiv: "WHILE b DO c \<sim> IF b THEN (c;; WHILE b DO c) ELSE SKIP"
   by blast
 
 lemma if_equiv: "IF b THEN c ELSE c \<sim> c"
