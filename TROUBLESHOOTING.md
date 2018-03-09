@@ -38,3 +38,6 @@ Looking at the goals carefully let me realise this.
 In exercise 3.2 it took me forever to find the "split" theorems
 `if_splits` and `option_splits` so that I could get the following theorem
 to prove.
+
+Split rules should be used whenever you have `case` expressions in your
+function definitions.
