@@ -1,7 +1,7 @@
-theory Small_Step_sseefried
+theory Small_Step_7p8
 imports 
 Star
-BigStep_sseefried
+Big_Step_7p8
 
 begin
 
@@ -19,7 +19,8 @@ IfTrue:  "bval b s \<Longrightarrow> (IF b THEN c\<^sub>1 ELSE c\<^sub>2,s) \<ri
 IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^sub>1 ELSE c\<^sub>2,s) \<rightarrow> (c\<^sub>2,s)" |
 
 While:   "(WHILE b DO c,s) \<rightarrow>
-            (IF b THEN c;; WHILE b DO c ELSE SKIP,s)"
+            (IF b THEN c;; WHILE b DO c ELSE SKIP,s)" |
+Repeat:  "(REPEAT c UNTIL b, s) \<rightarrow> (c ;; IF b THEN REPEAT c UNTIL b ELSE SKIP, s)"
 
 abbreviation
   small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
@@ -42,7 +43,10 @@ thm SeqE
 inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<rightarrow> ct"
 thm IfE
 inductive_cases WhileE[elim]: "(WHILE b DO c, s) \<rightarrow> ct"
-
+thm WhileE
+inductive_cases RepeatE[elim]: "(REPEAT c UNTIL b, s) \<rightarrow> ct"
+thm RepeatE
+  
 (* Lemma 7.11 *)  
 lemma "cs \<rightarrow> cs' \<Longrightarrow> cs \<rightarrow> cs'' \<Longrightarrow> cs'' = cs'"
   apply (induction cs' arbitrary: cs'' rule: small_step.induct)
@@ -77,6 +81,7 @@ qed
 thm big_step.WhileTrue
 
 (* Lemma 7.12 *)
+
 lemma big_step_imp_small_step: "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP, t)"
 proof (induction rule: big_step.induct)
   case (Skip s)
@@ -111,7 +116,26 @@ next
   have 4: "(SKIP;;?w, s\<^sub>2) \<rightarrow>* (?w, s\<^sub>2)" by simp 
   then have "(?w, s\<^sub>1) \<rightarrow>* (?w, s\<^sub>2)" using 1 2 3 4 by (blast intro: star_trans)
   then show ?case using WhileTrue.IH by (blast intro: star_trans)
-qed
+next
+  (* It's worth noting that the "blast intro: star_trans" idiom works but 
+     "using star_trans by blast" doesn't! *)
+  case (RepeatFalse c s t b)
+  let ?r  = "REPEAT c UNTIL b"
+  let ?if = "IF b THEN REPEAT c UNTIL b ELSE SKIP"
+  have "(?r, s) \<rightarrow>* (c ;; ?if, s)" by blast
+  moreover have "(c ;; ?if, s) \<rightarrow>* (SKIP;;?if, t)" using RepeatFalse.IH star_seq2 by blast
+  moreover have "(SKIP;;?if, t) \<rightarrow>* (SKIP, t)" using RepeatFalse.hyps(2) by (blast intro: star_trans)
+  ultimately show ?case by (blast intro: star_trans star.step)
+next
+  case (RepeatTrue c s\<^sub>1 s\<^sub>2 b s\<^sub>3)
+  let ?r  = "REPEAT c UNTIL b"
+  let ?if = "IF b THEN REPEAT c UNTIL b ELSE SKIP"
+  have "(?r, s\<^sub>1) \<rightarrow>* (c;; ?if, s\<^sub>1)" by blast
+  moreover have "(c ;; ?if, s\<^sub>1) \<rightarrow>* (SKIP;;?if,s\<^sub>2)" using RepeatTrue.IH(1) star_seq2 by blast
+  moreover have "(SKIP;;?if, s\<^sub>2) \<rightarrow> (?if, s\<^sub>2)" by (rule Seq1)
+  moreover have "(?if, s\<^sub>2) \<rightarrow>* (SKIP, s\<^sub>3)" using RepeatTrue.hyps(2) RepeatTrue.IH(2) star_seq2  by (blast intro: star.step star_trans)
+  ultimately show ?case by (blast intro: star_trans star.step)
+qed 
 
   
 (* I could have got an even smaller proof for the WhileTrue cases above if I'd have proved this 
@@ -149,7 +173,7 @@ qed
 
 (* The textbook got us to prove "(c,s) \<Rightarrow> t \<longleftrightarrow> (c,s) \<rightarrow>* (SKIP, t)" 
    which ended up meaning that the proof for 7.18 did not go through easily.
-   The form below, using "cs" insteand of "(c,s)" is the same as the form for 
+   The form below, using "cs" instead of "(c,s)" is the same as the form for 
    final_iff_SKIP
  *)
 
@@ -181,8 +205,7 @@ lemma "(\<exists>t. cs \<Rightarrow> t) \<longleftrightarrow> (\<exists>cs'. cs 
   apply (simp add: final_iff_SKIP)
   apply (simp add: big_iff_small)
   done
-  
-  
+   
 end
   
   

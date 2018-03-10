@@ -123,7 +123,9 @@ lemma if_equiv: "IF b THEN c ELSE c \<sim> c"
 lemma repeat_if_equiv: "REPEAT c UNTIL b \<sim> c;; IF b THEN REPEAT c UNTIL b ELSE SKIP"
   using RepeatE2 by blast
 
-(* 11:54 Fri 09 Mar 2018 
+(* lemma repeat_while_equiv is just for fun
+
+   11:54 Fri 09 Mar 2018 
    I was having big trouble with the induction rule again. I will try to create my own.
 
    16:22 Fri 09 Mar 2018 
@@ -178,54 +180,6 @@ proof -
   show ?thesis using fwd bwd by blast
 qed
   
-(* Lemma 7.6 *)  
-(* Uses advanced rule induction from section 5.4.6 *)
-
-lemma
-  assumes "(WHILE b DO c, s) \<Rightarrow> t"
-  assumes "c \<sim> c'"
-  shows "(WHILE b DO c', s) \<Rightarrow> t"
-using assms
-  apply (induct "(WHILE b DO c, s)" "t" arbitrary: s)
-   apply blast
-  apply blast
-  done
-
-  (* or you can do *)  
-lemma  while_equiv_aux: "(WHILE b DO c, s) \<Rightarrow> t \<Longrightarrow> c \<sim> c' \<Longrightarrow> (WHILE b DO c', s) \<Rightarrow> t"
-  apply(induction "(WHILE b DO c)" s t arbitrary: b c rule: big_step_induct)
-   apply blast
-  apply blast
-  done
-
-(* 
-  I found the unification that was going on with the advance rule induction to be a bit 
-  mysterious. The following theorem is very close to what we get after:
-
-  apply (induction "(WHILE b DO c, s)" t arbitrary: b c s rule: big_step.induct)
-*)
-
-
-thm big_step.induct[of "(WHILE b DO c, s)" "t" "\<lambda>(c,s1) s2. \<forall>b ca. c = WHILE b DO ca \<longrightarrow> ca \<sim> c' \<longrightarrow> (WHILE b DO c', s1) \<Rightarrow> s2"]
-
-(* Peter Gammie showed me how to get exactly what you get after the induction step in the proofs
-   above. Not the use of the `for` construct and the `rule_format` attribute (also known as a 
-   "directive")
-*)
-
-lemmas unified_big_step = big_step.induct[of "(WHILE b DO c, s)" "t" 
-  "\<lambda>(c,s1) s2. \<forall>b ca. c = WHILE b DO ca \<longrightarrow> ca \<sim> c' \<longrightarrow> (WHILE b DO c', s1) \<Rightarrow> s2", simplified, 
-    rule_format] for b c c' s t
-
-(* We can now prove the lemma again with this new theorem *)
-lemma  "(WHILE b DO c, s) \<Rightarrow> t \<Longrightarrow> c \<sim> c' \<Longrightarrow> (WHILE b DO c', s) \<Rightarrow> t"
-  apply (erule unified_big_step)
-  apply auto
-  done
-
-(* We now use Lemma 7.6 to prove the following *)
-lemma while_equiv: "c \<sim> c' \<Longrightarrow> WHILE b DO c \<sim> WHILE b DO c'"
-  by (auto simp: while_equiv_aux)
 
 (* Lemma 7.8 *)  
 
@@ -238,26 +192,5 @@ lemma imp_deterministic: "\<lbrakk> (c,s) \<Rightarrow> t; (c,s) \<Rightarrow> t
   apply (induction t arbitrary: t' rule: big_step_induct)
   apply blast+
   done
-  
-(* Here is the "blackboard presentation" *)  
-theorem
-  "\<lbrakk>(c,s) \<Rightarrow>t;  (c,s) \<Rightarrow> t' \<rbrakk> \<Longrightarrow> t' = t"
-proof (induction arbitrary: t' rule: big_step.induct)
-  -- "the only interesting case, WhileTrue:"
-fix b c s s1 t t'
-  -- "The assumptions of the rule:"
-assume "bval b s" and "(c,s) \<Rightarrow> s1" and "(WHILE b DO c, s1) \<Rightarrow> t"
--- "Ind.Hyp; note the \<And> because of arbitrary:"
-assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s1"
-assume IHw: "\<And>t'. (WHILE b DO c, s1) \<Rightarrow> t' \<Longrightarrow> t' = t" 
--- "Premise of implication:"
-assume "(WHILE b DO c, s) \<Rightarrow> t'"
-with `bval b s` obtain s1' where
-  c: "(c,s) \<Rightarrow> s1'" and
-  w: "(WHILE b DO c, s1') \<Rightarrow> t'" by auto
-from c IHc have "s1' = s1" by blast
-with w IHw show "t' =t" by blast
-qed blast+ 
--- "prove the rest automatically"
-  
+    
 end
